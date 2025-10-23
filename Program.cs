@@ -24,7 +24,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularDev",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4201", "https://your-netlify-app-name.netlify.app") // Angular dev server and Netlify
+            policy.WithOrigins("http://localhost:4201", "https://frontendangularapp.netlify.app") // Angular dev server and Netlify
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
