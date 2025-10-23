@@ -4,9 +4,12 @@ using WebApplication1.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // ✅ 1️⃣ Add MySQL Database Connection
+var connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING") ?? 
+                      builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
+        connectionString,
         new MySqlServerVersion(new Version(8, 0, 33)) // use your MySQL version
     )
 );
@@ -21,10 +24,23 @@ builder.Services.AddSwaggerGen();
 // ✅ Add CORS support for frontend communication
 builder.Services.AddCors(options =>
 {
+    var allowedOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS");
+    var origins = new List<string> { "http://localhost:4201" }; // Always allow localhost
+    
+    if (!string.IsNullOrEmpty(allowedOrigins))
+    {
+        origins.AddRange(allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries));
+    }
+    else
+    {
+        // Fallback to the Netlify app if no environment variable is set
+        origins.Add("https://frontendangularapp.netlify.app");
+    }
+
     options.AddPolicy("AllowAngularDev",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4201", "https://frontendangularapp.netlify.app") // Angular dev server and Netlify
+            policy.WithOrigins(origins.ToArray())
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
